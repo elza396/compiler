@@ -1,0 +1,7 @@
+/Users/elzagazizova/Projects/compiler/Compiler/bin/Debug/Compiler.exe.config
+/Users/elzagazizova/Projects/compiler/Compiler/bin/Debug/Compiler.exe
+/Users/elzagazizova/Projects/compiler/Compiler/bin/Debug/Compiler.pdb
+/Users/elzagazizova/Projects/compiler/Compiler/obj/Debug/Compiler.csprojAssemblyReference.cache
+/Users/elzagazizova/Projects/compiler/Compiler/obj/Debug/Compiler.csproj.CoreCompileInputs.cache
+/Users/elzagazizova/Projects/compiler/Compiler/obj/Debug/Compiler.exe
+/Users/elzagazizova/Projects/compiler/Compiler/obj/Debug/Compiler.pdb
