@@ -1,6 +1,8 @@
 ﻿using System;
 namespace Compiler
 {
+    public class FatalException : Exception { }
+
     class LexicalAnalyzer
     {
         public const byte
@@ -114,7 +116,7 @@ namespace Compiler
                             nmb_float = nmb_int;
                             while (InputOutput.Ch >= '0' && InputOutput.Ch <= '9')
                             {
-                                nmb_float += (InputOutput.Ch - '0') * (float)Math.Pow(0.1, count++);
+                                nmb_float += ((char)InputOutput.Ch - '0') * (float)Math.Pow(0.1, count++);
                                 isFloat = true;
                                 InputOutput.NextCh();
                             }
@@ -151,6 +153,17 @@ namespace Compiler
                         }
                     }
                     break;
+                case '\'':
+                    string str = "";
+                    InputOutput.NextCh();
+                    while (InputOutput.Ch.HasValue && InputOutput.Ch != '\'')
+                    {
+                        str += InputOutput.Ch;
+                        InputOutput.NextCh();
+                    }
+                    symbol = charc;
+                    InputOutput.NextCh();
+                    break;
                 case '/':
                     symbol = slash;
                     InputOutput.NextCh();
@@ -184,10 +197,13 @@ namespace Compiler
                     InputOutput.NextCh();
                     if (InputOutput.Ch == '=')
                     {
-                        symbol = assign; InputOutput.NextCh();
+                        symbol = assign;
+                        InputOutput.NextCh();
                     }
                     else
+                    {
                         symbol = colon;
+                    }
                     break;
                 case ';':
                     symbol = semicolon;
@@ -263,6 +279,10 @@ namespace Compiler
                     symbol = minus;
                     InputOutput.NextCh();
                     break;
+                default:
+                    InputOutput.Error(6, token);
+                    InputOutput.NextCh();
+                    throw new FatalException();
             }
 
             return symbol;

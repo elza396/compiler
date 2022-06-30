@@ -13,8 +13,6 @@ namespace Compiler
             id_starters = 4,
             after_var = 5;
 
-
-
         public StFoll()
         {
             sf[begpart] = new HashSet<byte>();
@@ -49,8 +47,6 @@ namespace Compiler
 
             sf[after_var] = new HashSet<byte>();
             sf[after_var].Add(LexicalAnalyzer.semicolon);
-
-           
         }
 
     }

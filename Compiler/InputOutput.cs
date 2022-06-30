@@ -32,7 +32,7 @@ namespace Compiler
     class InputOutput
     {
         const byte ERRMAX = 9;
-        public static char Ch;
+        public static char? Ch;
         public static TextPosition positionNow;
         static string line;
         static byte lastInLine = 0;
@@ -69,6 +69,7 @@ namespace Compiler
             while (permission)
             {
                 LexicalAnalyzer.NextSym();
+                //SyntaxisAnalyzer(LexicalAnalyzer.symbol)
                 Console.WriteLine(LexicalAnalyzer.symbol);
                 streamWriter.WriteLine(LexicalAnalyzer.symbol);
             }

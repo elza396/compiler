@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-
-namespace Compiler
+﻿namespace Compiler
 {
     class Program
     {
@@ -13,7 +8,6 @@ namespace Compiler
             // FileStream file = new FileStream("Lex.txt", FileMode.Create);
             // file.Close();
             InputOutput.Scan();
-
         }
     }
 }
