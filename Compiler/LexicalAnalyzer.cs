@@ -69,7 +69,19 @@ namespace Compiler
             repeatsy = 121,
             programsy = 122,
             functionsy = 123,
-            procedurensy = 124;
+            procedurensy = 124,
+            integersy = 125,
+            quoteOne = 126, // '
+            quoteTwo = 127, // "
+            comment = 128, // comment
+            stringc = 129,
+            writelnsy = 130, // строковая константа
+            stringsy = 131, // string
+            floatsy = 132, // float
+            equalStar = 133, // *=
+            equalSlash = 134, // /=
+            equalMinus = 135, // -=
+            equalPlus = 136; // +=
 
         public static byte symbol; // код символа
         public static TextPosition token; // позиция символа
@@ -135,9 +147,9 @@ namespace Compiler
 
                 case char word when ((word >= 'a' && word <= 'z') || (word >= 'A' && word <= 'Z')):
                     string name = "";
-                    while  ((InputOutput.Ch >= 'a' && InputOutput.Ch <= 'z') ||
-                            (InputOutput.Ch >= 'A' && InputOutput.Ch <= 'Z') ||
-                            (InputOutput.Ch >= '0' && InputOutput.Ch <= '9'))
+                    while  (InputOutput.Ch >= 'a' && InputOutput.Ch <= 'z' ||
+                            InputOutput.Ch >= 'A' && InputOutput.Ch <= 'Z' ||
+                            InputOutput.Ch >= '0' && InputOutput.Ch <= '9')
                             {
                                 name += InputOutput.Ch;
                                 InputOutput.NextCh();

@@ -11,7 +11,9 @@ namespace Compiler
             st_varpart = 2,
             st_procfuncpart = 3,
             id_starters = 4,
-            after_var = 5;
+            after_var = 5,
+            values = 6,
+            types = 7;
 
         public StFoll()
         {
@@ -47,6 +49,17 @@ namespace Compiler
 
             sf[after_var] = new HashSet<byte>();
             sf[after_var].Add(LexicalAnalyzer.semicolon);
+
+            sf[values] = new HashSet<byte>();
+            sf[values].Add(LexicalAnalyzer.ident);
+            sf[values].Add(LexicalAnalyzer.intc);
+            sf[values].Add(LexicalAnalyzer.floatc);
+            sf[values].Add(LexicalAnalyzer.charc);
+
+            sf[types] = new HashSet<byte>();
+            sf[types].Add(LexicalAnalyzer.integersy);
+            sf[types].Add(LexicalAnalyzer.floatsy);
+            sf[types].Add(LexicalAnalyzer.stringsy);
         }
 
     }

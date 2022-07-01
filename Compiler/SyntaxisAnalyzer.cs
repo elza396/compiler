@@ -5,6 +5,11 @@ namespace Compiler
 {
     class SyntaxisAnalyzer
     {
+        static HashSet<byte> followers = new HashSet<byte>(); // внешние
+        static bool ifStart = true; // ?
+        public static int count = 0; // ?
+        static bool ifFlag = false; // ?
+        static int beginEndCount = 0; // ?
         static void Accept(byte symbolExpected)
         {
             if (LexicalAnalyzer.symbol == symbolExpected)
@@ -44,94 +49,289 @@ namespace Compiler
             set3.UnionWith(set1);
         }
 
-        // void Block(HashSet<byte> followers)
-        // {
-        //     HashSet<byte> ptra;
-        //     StFoll obj = new StFoll();
-        //     if (!Belong(LexicalAnalyzer.symbol, obj.sf[StFoll.begpart]))
-        //     {
-        //         InputOutput.Error(18); // ошибка в разделе описаний
-        //         SkipTo2(obj.sf[StFoll.begpart], followers);
-        //     }
-        //     if (Belong(LexicalAnalyzer.symbol, obj.sf[StFoll.begpart]))
-        //     {
-        //         LabelPart();
-        //         SetDisjunct(obj.sf[StFoll.st_typepart], followers, out ptra);
-        //         ConstPart(ptra);
-        //         SetDisjunct(obj.sf[StFoll.st_varpart], followers, out ptra);
-        //         TypePart(ptra);
-        //         SetDisjunct(obj.sf[StFoll.st_procfuncpart], followers, out ptra);
-        //         VarPart(ptra);
-        //         ProcFuncPart(ptra);
-        //         StatPart(followers);
-        //         if (!Belong(LexicalAnalyzer.symbol, followers))
-        //         {
-        //             InputOutput.Error(6); // запрещенный символ
-        //             SkipTo(followers);
-        //         }
-        //     }
-        // }
+        SyntaxisAnalyzer()
+        {
+            if (ifStart)
+            {
+                // SemanticAnalyzer.TreeNode temp = null; // добавляем новую обасть видимости новую голову
+                // SemanticAnalyzer.heads.Push(temp);
+                HashSet<byte> ptra = new HashSet<byte>();
+                StFoll obj = new StFoll();
+                SetDisjunct(obj.sf[StFoll.st_typepart], followers, out ptra);
+                // union(followers, allCodes.begpart);                // add "var", "function" and the rest in followers
+                followers.Add(LexicalAnalyzer.point); // ?
 
-        // void VarPart(HashSet<byte> followers)
+                ptra.Add(LexicalAnalyzer.programsy);
+                if (!Belong(LexicalAnalyzer.symbol, ptra))
+                {
+                    InputOutput.Error(3, LexicalAnalyzer.token);
+                    SkipTo2(ptra, followers);
+                }
+                else
+                {
+                    Accept(LexicalAnalyzer.programsy);
+                    Accept(LexicalAnalyzer.ident);
+                    Accept(LexicalAnalyzer.semicolon);
+                }
+                ifStart = false;
+            }
+            else
+            {
+                Block(followers);
+                if (!ifFlag)
+                {
+                    LexicalAnalyzer.NextSym();
+                }
+                ifFlag = false; // ?
+            }
+        }
+
+        static void LabelPart() // раздел меток
+        {
+            if (LexicalAnalyzer.symbol == LexicalAnalyzer.labelsy)
+            {
+                Accept(LexicalAnalyzer.labelsy);
+                if (LexicalAnalyzer.symbol == LexicalAnalyzer.intc || LexicalAnalyzer.symbol == LexicalAnalyzer.ident)
+                {
+                    LexicalAnalyzer.NextSym();
+                }
+                else
+                {
+                    InputOutput.Error(26, LexicalAnalyzer.token);
+                }
+
+                while (LexicalAnalyzer.symbol == LexicalAnalyzer.comma)
+                {
+                    LexicalAnalyzer.NextSym();
+                    if (LexicalAnalyzer.symbol == LexicalAnalyzer.intc || LexicalAnalyzer.symbol == LexicalAnalyzer.ident)
+                    {
+                        LexicalAnalyzer.NextSym();
+                    }
+                    else
+                    {
+                        InputOutput.Error(26, LexicalAnalyzer.token);
+                    }
+                }
+                Accept(LexicalAnalyzer.semicolon);
+            }
+        }
+
+        static void ConstPart() //раздел констант, не знаю нужен ли, но пусть будет
+        {
+            if (LexicalAnalyzer.symbol == LexicalAnalyzer.constsy)
+            {
+                Accept(LexicalAnalyzer.constsy);
+                Accept(LexicalAnalyzer.ident);
+                Accept(LexicalAnalyzer.equal);
+                if (LexicalAnalyzer.symbol == LexicalAnalyzer.intc ||
+                    LexicalAnalyzer.symbol == LexicalAnalyzer.floatc ||
+                    LexicalAnalyzer.symbol == LexicalAnalyzer.charc) // ? либо строка
+                {
+                    LexicalAnalyzer.NextSym();
+                }
+            }
+            else
+            {
+                InputOutput.Error(26, LexicalAnalyzer.token);
+            }
+
+            while (LexicalAnalyzer.symbol == LexicalAnalyzer.semicolon)
+            {
+                LexicalAnalyzer.NextSym();
+                if (LexicalAnalyzer.symbol == LexicalAnalyzer.typesy || LexicalAnalyzer.symbol == LexicalAnalyzer.varsy) // ?
+                {
+                    break;
+                }
+                Accept(LexicalAnalyzer.ident);
+                Accept(LexicalAnalyzer.equal);
+                if (LexicalAnalyzer.symbol == LexicalAnalyzer.intc ||
+                    LexicalAnalyzer.symbol == LexicalAnalyzer.floatc ||
+                    LexicalAnalyzer.symbol == LexicalAnalyzer.charc)
+                {
+                    LexicalAnalyzer.NextSym();
+                }
+                else
+                {
+                    InputOutput.Error(26, LexicalAnalyzer.token);
+                }
+
+            }
+            Accept(LexicalAnalyzer.semicolon);
+        }
+
+        static void Block(HashSet<byte> followers)
+        {
+            HashSet<byte> ptra;
+            StFoll obj = new StFoll();
+            if (!Belong(LexicalAnalyzer.symbol, obj.sf[StFoll.begpart]))
+            {
+                InputOutput.Error(18); // ошибка в разделе описаний
+                SkipTo2(obj.sf[StFoll.begpart], followers);
+            }
+            if (Belong(LexicalAnalyzer.symbol, obj.sf[StFoll.begpart]))
+            {
+                LabelPart();
+                SetDisjunct(obj.sf[StFoll.st_typepart], followers, out ptra);
+                ConstPart();
+                SetDisjunct(obj.sf[StFoll.st_varpart], followers, out ptra);
+                // TypePart(ptra); // а надо ли нам это?
+                SetDisjunct(obj.sf[StFoll.st_procfuncpart], followers, out ptra);
+                VarPart(ptra);
+                //ProcFuncPart(ptra); // не реализовано
+                // StatPart(followers);
+                if (!Belong(LexicalAnalyzer.symbol, followers))
+                {
+                    InputOutput.Error(6); // запрещенный символ
+                    SkipTo(followers);
+                }
+            }
+        }
+
+        static void VarPart(HashSet<byte> followers)
+        {
+            HashSet<byte> ptra;
+            StFoll obj = new StFoll();
+            if (!Belong(LexicalAnalyzer.symbol, obj.sf[StFoll.st_varpart]))
+            {
+                InputOutput.Error(18); // ошибка в разделе описаний
+                SkipTo2(obj.sf[StFoll.st_varpart], followers);
+            }
+            if (LexicalAnalyzer.symbol == LexicalAnalyzer.varsy)
+            {
+                LexicalAnalyzer.NextSym();
+                SetDisjunct(obj.sf[StFoll.after_var], followers, out ptra);
+                do
+                {
+                    VarDeclaration(ptra);
+                    Accept(LexicalAnalyzer.semicolon);
+                }
+                while (LexicalAnalyzer.symbol == LexicalAnalyzer.ident);
+                if (!Belong(LexicalAnalyzer.symbol, followers))
+                {
+                    InputOutput.Error(6); // запрещенный символ
+                    SkipTo(followers);
+                }
+            }
+        }
+
+
+        static void VarDeclaration(HashSet<byte> followers)
+        {
+            StFoll obj = new StFoll();
+            if (!Belong(LexicalAnalyzer.symbol, obj.sf[StFoll.id_starters]))
+            {
+                InputOutput.Error(2);
+                SkipTo2(obj.sf[StFoll.id_starters], followers);
+            }
+            if (LexicalAnalyzer.symbol == LexicalAnalyzer.ident)
+            {
+                // InputOutput.varList = null;
+                // NewVariable();
+                Accept(LexicalAnalyzer.ident);
+                // LexicalAnalyzer.NextSym(); ???????
+                while (LexicalAnalyzer.symbol == LexicalAnalyzer.comma)
+                {
+                    LexicalAnalyzer.NextSym();
+                    // NewVariable();
+                    Accept(LexicalAnalyzer.ident);
+                }
+                Accept(LexicalAnalyzer.colon);
+                // InputOutput.varType = Typе(followers);
+                // внешняя переменная varType содержит адрес дескриптора типа для однотипных переменных
+                // AddAttributes();
+                if (LexicalAnalyzer.symbol == LexicalAnalyzer.arraysy)
+                {
+                    // SemanticAnalyzer.tempIdTypeArray = SemanticAnalyzer.arrays; // тип идентификаторов массив
+                    ArrayType(); // массив?
+                }
+                else Type();
+                if (!Belong(LexicalAnalyzer.symbol, followers))
+                {
+                    InputOutput.Error(6); // запрещенный символ
+                    SkipTo(followers);
+                }
+            }
+        }
+
+        static void ArrayType()
+        {
+            Accept(LexicalAnalyzer.arraysy);
+            Accept(LexicalAnalyzer.lbracket);
+            SimpleType();
+            while (LexicalAnalyzer.symbol == LexicalAnalyzer.comma)
+            {
+                Accept(LexicalAnalyzer.comma);
+                SimpleType();
+            }
+            Accept(LexicalAnalyzer.rbracket);
+            Accept(LexicalAnalyzer.ofsy);
+            Type();
+        }
+
+        static void SimpleType()
+        {
+            StFoll obj = new StFoll();
+            if (!Belong(LexicalAnalyzer.symbol, obj.sf[StFoll.id_starters]))
+            {
+                Accept(LexicalAnalyzer.intc);
+            }
+            else LexicalAnalyzer.NextSym();
+        }
+
+        static void Type() // простые типы
+        {
+            StFoll obj = new StFoll();
+            if (!Belong(LexicalAnalyzer.symbol, obj.sf[StFoll.types]))
+                Accept(LexicalAnalyzer.integersy);
+            else
+            {
+                // SemanticAnalyzer.tempIdType = SemanticAnalyzer.scalars;
+                LexicalAnalyzer.NextSym();
+            }
+        }
+
+        // void Statement(HashSet<byte> followers) // анализ конструкции <оператор>
         // {
-        //     HashSet<byte> ptra; // храним внешние символы
-        //     StFoll obj = new StFoll();
-        //     if (!Belong(LexicalAnalyzer.symbol, obj.sf[StFoll.st_varpart]))
+        //     if (LexicalAnalyzer.symbol == LexicalAnalyzer.intc) // семантический анализ метки
         //     {
-        //         InputOutput.Error(18); // ошибка в разделе описаний
-        //         SkipTo2(obj.sf[StFoll.st_varpart], followers);
-        //     }
-        //     if (LexicalAnalyzer.symbol == LexicalAnalyzer.varsy)
-        //     {
+        //         // ...
         //         LexicalAnalyzer.NextSym();
-        //         SetDisjunct(obj.sf[StFoll.after_var], followers, out ptra);
-        //         do
-        //         {
-        //             VarDeclaration(ptra);
-        //             Accept(LexicalAnalyzer.semicolon);
-        //         }
-        //         while (LexicalAnalyzer.symbol == LexicalAnalyzer.ident);
-        //         if (!Belong(LexicalAnalyzer.symbol, followers))
-        //         {
-        //             InputOutput.Error(6); // запрещенный символ
-        //             SkipTo(followers);
-        //         }
-        //     }
-        // }
-
-
-        // void VarDeclaration(HashSet<byte> followers)
-        // {
-        //     StFoll obj = new StFoll();
-        //     if (!Belong(LexicalAnalyzer.symbol, obj.sf[StFoll.id_starters]))
-        //     {
-        //         InputOutput.Error(2); // должно идти имя
-        //         SkipTo2(obj.sf[StFoll.id_starters], followers);
-        //     }
-        //     if (LexicalAnalyzer.symbol == LexicalAnalyzer.ident)
-        //     {
-        //         InputOutput.varList = null;
-        //         NewVariable();
-        //         Accept(LexicalAnalyzer.ident);
-        //         LexicalAnalyzer.NextSym();
-        //         while (LexicalAnalyzer.symbol == LexicalAnalyzer.comma)
-        //         {
-        //             LexicalAnalyzer.NextSym();
-        //             NewVariable();
-        //             Accept(LexicalAnalyzer.ident);
-        //         }
         //         Accept(LexicalAnalyzer.colon);
-        //         InputOutput.varType = Typе(followers);
-        //         // внешняя переменная varType содержит адрес дескриптора типа для однотипных переменных
-        //         AddAttributes();
-        //         if (!Belong(LexicalAnalyzer.symbol, followers))
-        //         {
-        //             InputOutput.Error(6); // запрещенный символ
-        //             SkipTo(followers);
-        //         }
+        //     }
+        //     switch (LexicalAnalyzer.symbol)
+        //     {
+        //         case LexicalAnalyzer.ident:
+        //             if (
+        //                // идентификатор — имя поля, переменной или функции
+        //                )
+        //             // анализ оператора присваивания
+        //                 Assignment(followers);
+        //             else
+        //                 // анализ вызова процедуры
+        //                 CallProc(followers);
+        //             break;
+        //         case LexicalAnalyzer.beginsy:
+        //             CompoundStatement(followers); break;
+        //         case LexicalAnalyzer.ifsy:
+        //             IfStatement(followers); break;
+        //         case LexicalAnalyzer.whilesy:
+        //             WhileStatement(followers); break;
+        //         case LexicalAnalyzer.repeatsy:
+        //             RepeatStatement(followers); break;
+        //         case LexicalAnalyzer.forsy:
+        //             ForStatement(followers); break;
+        //         case LexicalAnalyzer.casesy:
+        //             CaseStatement(followers); break;
+        //         case LexicalAnalyzer.withsy:
+        //             WithStatement(followers); break;
+        //         case LexicalAnalyzer.gotosy:
+        //             GotoStatement(followers); break;
+        //         case LexicalAnalyzer.semicolon:
+        //         case LexicalAnalyzer.endsy:
+        //         case LexicalAnalyzer.untilsy:
+        //         case LexicalAnalyzer.elsesy: break; // в случае пустого оператора
         //     }
         // }
-
 
 //         void programme()
 //                 /* создание элемента стека для фиктивной области действия */
@@ -309,7 +509,7 @@ namespace Compiler
         //         case LexicalAnalyzer.elsesy: break; // в случае пустого оператора
         //     }
         // }
-        //
+
         // void IfStatement(HashSet<byte> followers)
         // {
         //     SemanticAnalyzer.TypeRec expType; // указатель на дескриптор типа выражения
@@ -331,7 +531,7 @@ namespace Compiler
         //         Statement(followers);
         //     }
         // }
-        //
+
         // void ForStatement(HashSet<byte> followers) // анализ конструкции <цикл с параметром>
         // {
         //     SemanticAnalyzer.TypeRec expType; // указатель на дескриптор типа выражения
@@ -366,13 +566,13 @@ namespace Compiler
         //     Accept(LexicalAnalyzer.dosy);
         //     Statement(followers);
         // }
-        //
+
         // public class WithStack
         // {
         //     public SemanticAnalyzer.TypeRec varPtr; // указатель на дескриптор типа переменной-записи
         //     public WithStack nextWith; // указатель на следующий элемент стека
         // }
-        //
+
         // void WithStatement(HashSet<byte> followers) // анализ конструкции <оператор присоединения>
         // {
         //     SemanticAnalyzer.TypeRec varType; // указатель на дескриптор типа переменной
@@ -431,7 +631,7 @@ namespace Compiler
       //       }
       //       return ex1Type;
       //   }
-      //
+
       //   SemanticAnalyzer.TypeRec SimpleExpression(HashSet<byte> followers) // анализ конструкции <простое выражение>
       //   {
       //       SemanticAnalyzer.TypeRec ex1Type, ex2Type; // указатели на дескрипторы типов слагаемых
@@ -456,7 +656,7 @@ namespace Compiler
       //       }
       //       return ex1Type;
       //   }
-      //
+
       //   SemanticAnalyzer.TypeRec Term(HashSet<byte> followers) // анализ конструкции <слагаемое>
       //   {
       //       SemanticAnalyzer.TypeRec ex1Type, ex2Type; // указатели на дескрипторы типов множителей
@@ -477,7 +677,7 @@ namespace Compiler
       //       }
       //       return ex1Type;
       //   }
-      //
+
       //   SemanticAnalyzer.TypeRec Factor(HashSet<byte> followers) // анализ конструкции <множитель>
       //   {
       //       SemanticAnalyzer.TypeRec expType; // указатель на дескриптор типа множителя
@@ -549,7 +749,7 @@ namespace Compiler
       //       }
       //   return expType;
       // }
-      //
+
       //   bool RightSign(SemanticAnalyzer.TypeRec type) // указатель на дескриптор типа слагаемого
       //   // знак ( + или – ) может быть записан перед операндом, если его тип является целым или вещественным, или ограниченным на целом
       //   {
