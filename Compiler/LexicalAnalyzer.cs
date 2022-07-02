@@ -79,10 +79,14 @@ namespace Compiler
             readlnsy = 131,
             stringsy = 132, // string
             floatsy = 133, // float
-            equalStar = 134, // *=
-            equalSlash = 135, // /=
-            equalMinus = 136, // -=
-            equalPlus = 137; // +=
+            booleansy = 133, // boolean
+            charsy = 134, // char
+            equalStar = 136, // *=
+            equalSlash = 137, // /=
+            equalMinus = 138, // -=
+            equalPlus = 139, // +=
+            truesy = 140, // +=
+            falsesy = 141; // +=
 
         public static byte symbol; // код символа
         public static TextPosition token; // позиция символа

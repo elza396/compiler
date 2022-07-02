@@ -37,6 +37,8 @@ namespace Compiler
             tmp["goto"] = LexicalAnalyzer.gotosy;
             tmp["type"] = LexicalAnalyzer.typesy;
             tmp["with"] = LexicalAnalyzer.withsy;
+            tmp["char"] = LexicalAnalyzer.charsy;
+            tmp["true"] = LexicalAnalyzer.truesy;
             kw[4] = tmp;
             tmp = new Dictionary<string, byte>();
             tmp["begin"] = LexicalAnalyzer.beginsy;
@@ -46,6 +48,7 @@ namespace Compiler
             tmp["label"] = LexicalAnalyzer.labelsy;
             tmp["until"] = LexicalAnalyzer.untilsy;
             tmp["float"] = LexicalAnalyzer.floatsy;
+            tmp["false"] = LexicalAnalyzer.falsesy;
             kw[5] = tmp;
             tmp = new Dictionary<string, byte>();
             tmp["downto"] = LexicalAnalyzer.downtosy;
@@ -57,6 +60,7 @@ namespace Compiler
             tmp = new Dictionary<string, byte>();
             tmp["program"] = LexicalAnalyzer.programsy;
             tmp["integer"] = LexicalAnalyzer.integersy;
+            tmp["boolean"] = LexicalAnalyzer.booleansy;
             kw[7] = tmp;
             tmp = new Dictionary<string, byte>();
             tmp["function"] = LexicalAnalyzer.functionsy;

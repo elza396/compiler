@@ -15,7 +15,10 @@ namespace Compiler
             values = 6,
             types = 7,
             expressions = 8,
-            assigns = 9;
+            st_expressions = 9,
+            after_expressions = 10,
+            assigns = 11,
+            statement = 12;
 
         public StFoll()
         {
@@ -57,16 +60,36 @@ namespace Compiler
             sf[values].Add(LexicalAnalyzer.intc);
             sf[values].Add(LexicalAnalyzer.floatc);
             sf[values].Add(LexicalAnalyzer.charc);
+            sf[values].Add(LexicalAnalyzer.truesy);
+            sf[values].Add(LexicalAnalyzer.falsesy);
+            sf[values].Add(LexicalAnalyzer.leftpar);
 
             sf[types] = new HashSet<byte>();
             sf[types].Add(LexicalAnalyzer.integersy);
             sf[types].Add(LexicalAnalyzer.floatsy);
             sf[types].Add(LexicalAnalyzer.stringsy);
+            sf[types].Add(LexicalAnalyzer.charsy);
+            sf[types].Add(LexicalAnalyzer.arraysy);
+            sf[types].Add(LexicalAnalyzer.booleansy);
+
+            sf[st_expressions] = new HashSet<byte>();
+            sf[st_expressions].Add(LexicalAnalyzer.ident);
+            sf[st_expressions].Add(LexicalAnalyzer.intc);
+            sf[st_expressions].Add(LexicalAnalyzer.floatc);
+            sf[st_expressions].Add(LexicalAnalyzer.falsesy);
+            sf[st_expressions].Add(LexicalAnalyzer.truesy);
+            sf[st_expressions].Add(LexicalAnalyzer.stringsy);
+            sf[st_expressions].Add(LexicalAnalyzer.charsy);
+            sf[st_expressions].Add(LexicalAnalyzer.leftpar);
+
+            sf[after_expressions] = new HashSet<byte>();
+            sf[after_expressions].Add(LexicalAnalyzer.semicolon);
+            sf[after_expressions].Add(LexicalAnalyzer.tosy);
+            sf[after_expressions].Add(LexicalAnalyzer.downtosy);
+            sf[after_expressions].Add(LexicalAnalyzer.dosy);
+            sf[after_expressions].Add(LexicalAnalyzer.comma);
 
             sf[expressions] = new HashSet<byte>();
-            sf[expressions].Add(LexicalAnalyzer.ident);
-            sf[expressions].Add(LexicalAnalyzer.intc);
-            sf[expressions].Add(LexicalAnalyzer.floatc);
             sf[expressions].Add(LexicalAnalyzer.star);
             sf[expressions].Add(LexicalAnalyzer.slash);
             sf[expressions].Add(LexicalAnalyzer.equal);
@@ -90,6 +113,13 @@ namespace Compiler
             sf[assigns].Add(LexicalAnalyzer.equalSlash);
             sf[assigns].Add(LexicalAnalyzer.equalPlus);
             sf[assigns].Add(LexicalAnalyzer.equalMinus);
+
+            sf[statement] = new HashSet<byte>();
+            sf[statement].Add(LexicalAnalyzer.ident);
+            sf[statement].Add(LexicalAnalyzer.forsy);
+            sf[statement].Add(LexicalAnalyzer.whilesy);
+            sf[statement].Add(LexicalAnalyzer.repeatsy);
+            sf[statement].Add(LexicalAnalyzer.beginsy);
         }
 
     }
