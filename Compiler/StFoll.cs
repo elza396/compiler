@@ -13,7 +13,9 @@ namespace Compiler
             id_starters = 4,
             after_var = 5,
             values = 6,
-            types = 7;
+            types = 7,
+            expressions = 8,
+            assigns = 9;
 
         public StFoll()
         {
@@ -60,6 +62,34 @@ namespace Compiler
             sf[types].Add(LexicalAnalyzer.integersy);
             sf[types].Add(LexicalAnalyzer.floatsy);
             sf[types].Add(LexicalAnalyzer.stringsy);
+
+            sf[expressions] = new HashSet<byte>();
+            sf[expressions].Add(LexicalAnalyzer.ident);
+            sf[expressions].Add(LexicalAnalyzer.intc);
+            sf[expressions].Add(LexicalAnalyzer.floatc);
+            sf[expressions].Add(LexicalAnalyzer.star);
+            sf[expressions].Add(LexicalAnalyzer.slash);
+            sf[expressions].Add(LexicalAnalyzer.equal);
+            sf[expressions].Add(LexicalAnalyzer.plus);
+            sf[expressions].Add(LexicalAnalyzer.minus);
+            sf[expressions].Add(LexicalAnalyzer.latergreater);
+            sf[expressions].Add(LexicalAnalyzer.greaterequal);
+            sf[expressions].Add(LexicalAnalyzer.laterequal);
+            sf[expressions].Add(LexicalAnalyzer.greater);
+            sf[expressions].Add(LexicalAnalyzer.later);
+            sf[expressions].Add(LexicalAnalyzer.arrow);
+            sf[expressions].Add(LexicalAnalyzer.notsy);
+            sf[expressions].Add(LexicalAnalyzer.andsy);
+            sf[expressions].Add(LexicalAnalyzer.orsy);
+            sf[expressions].Add(LexicalAnalyzer.divsy);
+            sf[expressions].Add(LexicalAnalyzer.modsy);
+
+            sf[assigns] = new HashSet<byte>();
+            sf[assigns].Add(LexicalAnalyzer.assign);
+            sf[assigns].Add(LexicalAnalyzer.equalStar);
+            sf[assigns].Add(LexicalAnalyzer.equalSlash);
+            sf[assigns].Add(LexicalAnalyzer.equalPlus);
+            sf[assigns].Add(LexicalAnalyzer.equalMinus);
         }
 
     }

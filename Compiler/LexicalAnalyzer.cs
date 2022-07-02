@@ -75,13 +75,14 @@ namespace Compiler
             quoteTwo = 127, // "
             comment = 128, // comment
             stringc = 129,
-            writelnsy = 130, // строковая константа
-            stringsy = 131, // string
-            floatsy = 132, // float
-            equalStar = 133, // *=
-            equalSlash = 134, // /=
-            equalMinus = 135, // -=
-            equalPlus = 136; // +=
+            writelnsy = 130,
+            readlnsy = 131,
+            stringsy = 132, // string
+            floatsy = 133, // float
+            equalStar = 134, // *=
+            equalSlash = 135, // /=
+            equalMinus = 136, // -=
+            equalPlus = 137; // +=
 
         public static byte symbol; // код символа
         public static TextPosition token; // позиция символа

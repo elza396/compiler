@@ -1,11 +1,5 @@
-program Evklid;
-var M, N :integer; begin
-writeln (' Enter M and N ' ); 
-readln (M,N); 
-while M <> N do
+program Printing;
+var i : integer;
 begin
-if M > N
-then M := M - N
-else N := N - M end;
-write ('NOD=', M )
+    i := i * 3;
 end.

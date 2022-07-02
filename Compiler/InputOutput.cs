@@ -68,16 +68,13 @@ namespace Compiler
 
             while (permission)
             {
-                LexicalAnalyzer.NextSym();
-                //SyntaxisAnalyzer(LexicalAnalyzer.symbol)
-                Console.WriteLine(LexicalAnalyzer.symbol);
-                streamWriter.WriteLine(LexicalAnalyzer.symbol);
+                SyntaxisAnalyzer.Start();
+                //Console.WriteLine(LexicalAnalyzer.symbol);
+                //streamWriter.WriteLine(LexicalAnalyzer.symbol);
             }
 
             streamWriter.Close();
         }
-
-
 
         static public void NextCh()
         {
@@ -130,7 +127,7 @@ namespace Compiler
                 if (errCount < 10) s += "0";
                 s += $"{errCount}**";
                 while (s.Length - 1 < pos + item.errorPosition.charNumber) s += " ";
-                s += $"^ ошибка код {item.errorCode}";
+                s += $"^ ошибка код {item.errorCode}; {positionNow.lineNumber} : {positionNow.charNumber}";
                 Console.WriteLine(s);
             }
         }
