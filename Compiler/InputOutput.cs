@@ -52,11 +52,10 @@ namespace Compiler
             positionNow = new TextPosition();
             ReadNextLine();
             Ch = line[0];
-            LexicalAnalyzer.NextSym();
-
-            // ситнаксический анализатор
-
-            End();
+            while (permission)
+            {
+                SyntaxisAnalyzer.Start();
+            }
         }
         static public void Scan()
         {
@@ -68,9 +67,9 @@ namespace Compiler
 
             while (permission)
             {
-                SyntaxisAnalyzer.Start();
+                LexicalAnalyzer.NextSym();
                 //Console.WriteLine(LexicalAnalyzer.symbol);
-                //streamWriter.WriteLine(LexicalAnalyzer.symbol);
+                streamWriter.WriteLine(LexicalAnalyzer.symbol);
             }
 
             streamWriter.Close();

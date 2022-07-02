@@ -4,10 +4,10 @@
     {
         static void Main()
         {
-            // InputOutput.Begin();
+            InputOutput.Begin();
             // FileStream file = new FileStream("Lex.txt", FileMode.Create);
             // file.Close();
-            InputOutput.Scan();
+            // InputOutput.Scan();
         }
     }
 }

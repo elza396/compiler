@@ -117,7 +117,7 @@ namespace Compiler
             }
         }
 
-        static void ConstPart() //раздел констант, не знаю нужен ли, но пусть будет
+        static void ConstPart(HashSet<byte> followers) //раздел констант, не знаю нужен ли, но пусть будет
         {
             if (LexicalAnalyzer.symbol == LexicalAnalyzer.constsy)
             {
@@ -169,17 +169,15 @@ namespace Compiler
             {
                 LabelPart();
                 SetDisjunct(obj.sf[StFoll.st_typepart], followers, out ptra);
-                ConstPart();
+                ConstPart(ptra);
                 SetDisjunct(obj.sf[StFoll.st_varpart], followers, out ptra);
                 // TypePart(ptra); // а надо ли нам это?
                 SetDisjunct(obj.sf[StFoll.st_procfuncpart], followers, out ptra);
                 VarPart(ptra);
                 //ProcFuncPart(ptra); // не реализовано
                 StatPart(followers);
-                BeginEnd();
-                if (!Belong(LexicalAnalyzer.symbol, ptra))
+                if (!Belong(LexicalAnalyzer.symbol, followers))
                 {
-                    Console.WriteLine($"0000---{LexicalAnalyzer.symbol}---0000");
                     InputOutput.Error(6); // запрещенный символ
                     SkipTo(followers);
                 }
@@ -231,7 +229,6 @@ namespace Compiler
                 while (LexicalAnalyzer.symbol == LexicalAnalyzer.ident);
                 if (!Belong(LexicalAnalyzer.symbol, followers))
                 {
-                    Console.WriteLine("1111111somethin good1111111");
                     InputOutput.Error(6); // запрещенный символ
                     SkipTo(followers);
                 }
@@ -250,8 +247,7 @@ namespace Compiler
             {
                 // InputOutput.varList = null;
                 // NewVariable();
-                Accept(LexicalAnalyzer.ident);
-                // LexicalAnalyzer.NextSym(); ???????
+                LexicalAnalyzer.NextSym();
                 while (LexicalAnalyzer.symbol == LexicalAnalyzer.comma)
                 {
                     LexicalAnalyzer.NextSym();
@@ -265,9 +261,9 @@ namespace Compiler
                 if (LexicalAnalyzer.symbol == LexicalAnalyzer.arraysy)
                 {
                     // SemanticAnalyzer.tempIdTypeArray = SemanticAnalyzer.arrays; // тип идентификаторов массив
-                    ArrayType(); // массив?
+                    ArrayType(followers); // массив?
                 }
-                else Type();
+                else Type(followers);
                 if (!Belong(LexicalAnalyzer.symbol, followers))
                 {
                     InputOutput.Error(6); // запрещенный символ
@@ -276,7 +272,7 @@ namespace Compiler
             }
         }
 
-        static void ArrayType()
+        static void ArrayType(HashSet<byte> followers)
         {
             Accept(LexicalAnalyzer.arraysy);
             Accept(LexicalAnalyzer.lbracket);
@@ -288,7 +284,7 @@ namespace Compiler
             }
             Accept(LexicalAnalyzer.rbracket);
             Accept(LexicalAnalyzer.ofsy);
-            Type();
+            Type(followers);
         }
 
         static void SimpleType()
@@ -304,7 +300,7 @@ namespace Compiler
             }
         }
 
-        static void Type() // простые типы
+        static void Type(HashSet<byte> followers) // простые типы
         {
             StFoll obj = new StFoll();
             if (!Belong(LexicalAnalyzer.symbol, obj.sf[StFoll.types]))
@@ -336,7 +332,6 @@ namespace Compiler
         {
             if (LexicalAnalyzer.symbol == LexicalAnalyzer.intc) // семантический анализ метки
             {
-                // ... ?
                 LexicalAnalyzer.NextSym();
                 Accept(LexicalAnalyzer.colon);
             }
@@ -350,8 +345,18 @@ namespace Compiler
                     //     CallProc(followers);
                     break;
                 case LexicalAnalyzer.beginsy:
+                    beginEndCount++;
                     LexicalAnalyzer.NextSym();
                     StatPart(followers);
+                    Accept(LexicalAnalyzer.endsy);
+                    if (beginEndCount == 0)
+                    {
+                        Accept(LexicalAnalyzer.point);
+                    }
+                    else
+                    {
+                        Accept(LexicalAnalyzer.semicolon);
+                    }
                     break;
                 //     CompoundStatement(followers); break;
                 case LexicalAnalyzer.ifsy:
@@ -372,24 +377,24 @@ namespace Compiler
             }
         }
 
-        static void IfStatement(HashSet<byte> ptra) // условный оператор
+        static void IfStatement(HashSet<byte> followers) // условный оператор
         {
             if (LexicalAnalyzer.symbol == LexicalAnalyzer.ifsy)
             {
                 ifFlag = true;
                 Accept(LexicalAnalyzer.ifsy);
-                Expression(ptra);
+                Expression(followers);
 
                 Accept(LexicalAnalyzer.thensy);
-                Assignment(followers);
+                StatPart(followers);
 
                 if (LexicalAnalyzer.symbol == LexicalAnalyzer.elsesy)
                 {
                     Accept(LexicalAnalyzer.elsesy);
-                    IfStatement(ptra);
+                    IfStatement(followers);
                     Assignment(followers);
                 }
-                else Block(ptra); // если это не else, то чтобы не потерять строку рекурсивно запускаем
+                else StatPart(followers); // если это не else, то чтобы не потерять строку рекурсивно запускаем
             }
         }
 
@@ -397,48 +402,45 @@ namespace Compiler
         static void Expression(HashSet<byte> ptra) // выражение
         {
             StFoll obj = new StFoll();
-            if (!Belong(LexicalAnalyzer.symbol, obj.sf[StFoll.expressions]))
+            if (!Belong(LexicalAnalyzer.symbol, obj.sf[StFoll.st_expressions]))
             {
                 InputOutput.Error(3, LexicalAnalyzer.token);
                 SkipTo2(ptra, followers);
             }
 
-            if (Belong(LexicalAnalyzer.symbol, obj.sf[StFoll.expressions]))
+            if ( LexicalAnalyzer.symbol == LexicalAnalyzer.ident
+                 || obj.sf[StFoll.values].Contains(LexicalAnalyzer.symbol) )
             {
-                if ( LexicalAnalyzer.symbol == LexicalAnalyzer.ident
-                    || obj.sf[StFoll.values].Contains(LexicalAnalyzer.symbol) )
+                if(LexicalAnalyzer.symbol == LexicalAnalyzer.ident)
                 {
-                    if(LexicalAnalyzer.symbol == LexicalAnalyzer.ident)
-                    {
-                        // if(SemanticAnalyzer.searchIdent(SemanticAnalyzer.name) is null)
-                        //     accept(LexicalAnalyzer.varsy, "Ошибка! Идентификатор не определен");
-                        // GeneratorCodes.push_reference(LexicalAnalyzer.integersy, 0, 017,
-                        //     (ulong)(SemanticAnalyzer.searchIdent(SemanticAnalyzer.name)).ofSet);
-                    }
-                    count++;
-                    LexicalAnalyzer.NextSym();
+                    // if(SemanticAnalyzer.searchIdent(SemanticAnalyzer.name) is null)
+                    //     accept(LexicalAnalyzer.varsy, "Ошибка! Идентификатор не определен");
+                    // GeneratorCodes.push_reference(LexicalAnalyzer.integersy, 0, 017,
+                    //     (ulong)(SemanticAnalyzer.searchIdent(SemanticAnalyzer.name)).ofSet);
+                }
+                count++;
+                LexicalAnalyzer.NextSym();
 
-                    while (obj.sf[StFoll.expressions].Contains(LexicalAnalyzer.symbol))
+                while (obj.sf[StFoll.expressions].Contains(LexicalAnalyzer.symbol))
+                {
+                    LexicalAnalyzer.NextSym();
+                    if (LexicalAnalyzer.symbol == LexicalAnalyzer.ident
+                        || obj.sf[StFoll.values].Contains(LexicalAnalyzer.symbol))
                     {
+                        if (LexicalAnalyzer.symbol == LexicalAnalyzer.ident)
+                        {
+                            // if (SemanticAnalyzer.searchIdent(SemanticAnalyzer.name) is null)
+                            //     accept(LexicalAnalyzer.varsy, "Ошибка! Идентификатор не определен");
+                            // GeneratorCodes.push_reference(LexicalAnalyzer.integersy, 0, 017,
+                            // (ulong)(SemanticAnalyzer.searchIdent(SemanticAnalyzer.name)).ofSet);
+                            // GeneratorCodes.multop((ulong)LexicalAnalyzer.star, LexicalAnalyzer.integersy);
+                        }
                         LexicalAnalyzer.NextSym();
-                        if (LexicalAnalyzer.symbol == LexicalAnalyzer.ident
-                            || obj.sf[StFoll.values].Contains(LexicalAnalyzer.symbol))
-                        {
-                            if (LexicalAnalyzer.symbol == LexicalAnalyzer.ident)
-                            {
-                                // if (SemanticAnalyzer.searchIdent(SemanticAnalyzer.name) is null)
-                                //     accept(LexicalAnalyzer.varsy, "Ошибка! Идентификатор не определен");
-                                // GeneratorCodes.push_reference(LexicalAnalyzer.integersy, 0, 017,
-                                // (ulong)(SemanticAnalyzer.searchIdent(SemanticAnalyzer.name)).ofSet);
-                                // GeneratorCodes.multop((ulong)LexicalAnalyzer.star, LexicalAnalyzer.integersy);
-                            }
-                            LexicalAnalyzer.NextSym();
-                        }
-                        else
-                        {
-                            Accept(LexicalAnalyzer.ident);
-                            break;
-                        }
+                    }
+                    else
+                    {
+                        Accept(LexicalAnalyzer.ident);
+                        break;
                     }
                 }
             }
