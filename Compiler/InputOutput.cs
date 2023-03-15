@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Compiler
 {
-    struct TextPosition
+    public struct TextPosition
     {
         public uint lineNumber; // номер строки
         public byte charNumber; // номер позиции в строке
@@ -52,12 +52,9 @@ namespace Compiler
             positionNow = new TextPosition();
             ReadNextLine();
             Ch = line[0];
-            while (permission)
-            {
-                SyntaxisAnalyzer.Start();
-            }
+            Syntaxis.Programme();
         }
-        static public void Scan()
+        static public void Scan() // работа лексического анализатора
         {
             File = new StreamReader("Text.txt");
             positionNow = new TextPosition();
@@ -68,7 +65,7 @@ namespace Compiler
             while (permission)
             {
                 LexicalAnalyzer.NextSym();
-                //Console.WriteLine(LexicalAnalyzer.symbol);
+                Console.WriteLine(LexicalAnalyzer.symbol);
                 streamWriter.WriteLine(LexicalAnalyzer.symbol);
             }
 
@@ -77,12 +74,19 @@ namespace Compiler
 
         static public void NextCh()
         {
+            if (!permission)
+            {
+                if (err.Count > 0)
+                    ListErrors();
+                End();
+                Environment.Exit(0);
+            }
             lastInLine = (byte)line.Length;
             if (positionNow.charNumber == lastInLine - 1)
             {
-                ListThisLine();
                 if (err.Count > 0)
-                        ListErrors();
+                    ListErrors();
+                ListThisLine();
                 ReadNextLine();
                 positionNow.lineNumber += 1;
                 positionNow.charNumber = 0;
@@ -93,7 +97,8 @@ namespace Compiler
 
         private static void ListThisLine()
         {
-            Console.WriteLine(line);
+            string text = $"   {positionNow.lineNumber + 1}  {line}";
+            Console.WriteLine(text);
         }
 
         private static void ReadNextLine()
@@ -105,19 +110,18 @@ namespace Compiler
             }
             else
             {
-                End();
+                permission = false;
             }
         }
 
         static void End()
         {
-            permission = false;
             Console.WriteLine($"Компиляция завершена: ошибок — {errCount}!");
         }
 
         static void ListErrors()
         {
-            int pos = 6 - $"{positionNow.lineNumber} ".Length;
+            int pos = 8 - $"{positionNow.lineNumber} ".Length;
             string s;
             foreach (Err item in err)
             {
@@ -126,7 +130,7 @@ namespace Compiler
                 if (errCount < 10) s += "0";
                 s += $"{errCount}**";
                 while (s.Length - 1 < pos + item.errorPosition.charNumber) s += " ";
-                s += $"^ ошибка код {item.errorCode}; {positionNow.lineNumber} : {positionNow.charNumber}";
+                s += $"^ ошибка код {item.errorCode};";
                 Console.WriteLine(s);
             }
         }

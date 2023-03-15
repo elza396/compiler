@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 namespace Compiler
 {
-    class Keywords
+    public class Keywords
     {
         Dictionary<byte, Dictionary<string, byte>> kw = new Dictionary<byte, Dictionary<string, byte>>();
         public Dictionary<byte, Dictionary<string, byte>> Kw

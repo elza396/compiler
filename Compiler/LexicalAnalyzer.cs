@@ -3,7 +3,7 @@ namespace Compiler
 {
     public class FatalException : Exception { }
 
-    class LexicalAnalyzer
+    public class LexicalAnalyzer
     {
         public const byte
             star = 21, // *
@@ -88,7 +88,7 @@ namespace Compiler
             truesy = 140, // +=
             falsesy = 141; // +=
 
-        public static byte symbol; // код символа
+        public static CToken symbol; // код символа
         public static TextPosition token; // позиция символа
         string addrName; // адрес идентификатора в таблице имен
         static int nmb_int; // значение целой константы
@@ -96,7 +96,7 @@ namespace Compiler
         static char one_symbol; // значение символьной константы
         static int count = 0;
         
-        public static byte NextSym()
+        public static CToken NextSym()
         {
             while (InputOutput.Ch == ' ') InputOutput.NextCh();
             token.lineNumber = InputOutput.positionNow.lineNumber;
@@ -142,11 +142,11 @@ namespace Compiler
 
                     if (!isFloat)
                     {
-                        symbol = intc;
+                        symbol = new CConstToken(token, intc, new CIntVariant(nmb_int));;
                     }
                     else
                     {
-                        symbol = floatc;
+                        symbol = new CConstToken(token, floatc, new CRealVariant(nmb_float));;
                     }
                     break;
 
@@ -159,14 +159,14 @@ namespace Compiler
                                 name += InputOutput.Ch;
                                 InputOutput.NextCh();
                             }
-                    symbol = ident;
+                    symbol = new CIdentToken(token, ident, name);
 
                     if (name.Length >= 2 && name.Length <= 9)
                     {
                         Keywords keywordsLib = new Keywords();
                         if (keywordsLib.Kw[(byte) name.Length].ContainsKey(name))
                         {
-                            symbol = keywordsLib.Kw[(byte) name.Length][name];
+                            symbol = new CKeywordToken(token, keywordsLib.Kw[(byte) name.Length][name]);
                         }
                     }
                     break;
@@ -178,122 +178,133 @@ namespace Compiler
                         str += InputOutput.Ch;
                         InputOutput.NextCh();
                     }
-                    symbol = charc;
+                    symbol = new CConstToken(token, charc, new CStringVariant(str));
                     InputOutput.NextCh();
                     break;
                 case '/':
-                    symbol = slash;
+                    symbol = new CKeywordToken(token, slash);
                     InputOutput.NextCh();
                     break;
                 case '<':
                    InputOutput.NextCh();
                    if (InputOutput.Ch == '=')
                    {
-                        symbol = laterequal; InputOutput.NextCh();
+                        symbol = new CKeywordToken(token, laterequal);
+                        InputOutput.NextCh();
+                   }
+                   else if (InputOutput.Ch == '>')
+                   {
+                       symbol = new CKeywordToken(token, latergreater);
+                        InputOutput.NextCh();
                    }
                    else
-                    if (InputOutput.Ch == '>')
-                    {
-                        symbol = latergreater; InputOutput.NextCh();
-                    }
-                    else
-                        symbol = later;
-                    break;
+                   {
+                       symbol = new CKeywordToken(token, later);
+                   }
+                   break;
                 case '>':
                    InputOutput.NextCh();
                    if (InputOutput.Ch == '=')
                    {
-                        symbol = greaterequal; InputOutput.NextCh();
+                       symbol = new CKeywordToken(token, greaterequal);
+                       InputOutput.NextCh();
                    }
                    else
                    {
-                       symbol = greater;
+                       symbol = new CKeywordToken(token, greater);
                    }
                    break;
                 case ':':
                     InputOutput.NextCh();
                     if (InputOutput.Ch == '=')
                     {
-                        symbol = assign;
+                        symbol = new CKeywordToken(token, assign);
                         InputOutput.NextCh();
                     }
                     else
                     {
-                        symbol = colon;
+
+                        symbol = new CKeywordToken(token, colon);
                     }
                     break;
                 case ';':
-                    symbol = semicolon;
+                    symbol = new CKeywordToken(token, semicolon);
                     InputOutput.NextCh();
                     break;
                 case '.':
                     InputOutput.NextCh();
                     if (InputOutput.Ch == '.')
                     {
-                        symbol = twopoints; InputOutput.NextCh();
+                        symbol = new CKeywordToken(token, twopoints);
+                        InputOutput.NextCh();
                     }
-                    else symbol = point;
+                    else
+                    {
+                        symbol = new CKeywordToken(token, point);
+                    }
                     break;
                 case '*':
                     InputOutput.NextCh();
                     if (InputOutput.Ch == ')')
                     {
-                        symbol = rcomment; InputOutput.NextCh();
+                        symbol = new CKeywordToken(token, rcomment);
+                        InputOutput.NextCh();
                     }
                     else
                     {
-                        symbol = star;
+                        symbol = new CKeywordToken(token, star);
                     }
                     break;
                 case '(':
                     InputOutput.NextCh();
                     if (InputOutput.Ch == '*')
                     {
-                        symbol = lcomment; InputOutput.NextCh();
+                        symbol = new CKeywordToken(token, lcomment);
+                        InputOutput.NextCh();
                     }
                     else
                     {
-                        symbol = leftpar;
+                        symbol = new CKeywordToken(token, leftpar);
                     }
                     break;
                 case ')':
-                    symbol = rightpar;
+                    symbol = new CKeywordToken(token, rightpar);
                     InputOutput.NextCh();
                     break;
                 case '[':
-                    symbol = lbracket;
+                    symbol = new CKeywordToken(token, lbracket);
                     InputOutput.NextCh();
                     break;
                 case ']':
-                    symbol = rbracket;
+                    symbol = new CKeywordToken(token, rbracket);
                     InputOutput.NextCh();
                     break;
                 case '=':
-                    symbol = equal;
+                    symbol = new CKeywordToken(token, equal);
                     InputOutput.NextCh();
                     break;
                 case ',':
-                    symbol = comma;
+                    symbol = new CKeywordToken(token, comma);
                     InputOutput.NextCh();
                     break;
                 case '^':
-                    symbol = arrow;
+                    symbol = new CKeywordToken(token, arrow);
                     InputOutput.NextCh();
                     break;
                 case '{':
-                    symbol = flpar;
+                    symbol = new CKeywordToken(token, flpar);
                     InputOutput.NextCh();
                     break;
                 case '}':
-                    symbol = frpar;
+                    symbol = new CKeywordToken(token, frpar);
                     InputOutput.NextCh();
                     break;
                 case '+':
-                    symbol = plus;
+                    symbol = new CKeywordToken(token, plus);
                     InputOutput.NextCh();
                     break;
                 case '-':
-                    symbol = minus;
+                    symbol = new CKeywordToken(token, minus);
                     InputOutput.NextCh();
                     break;
                 default:

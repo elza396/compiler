@@ -1,7 +1,7 @@
 program Just;
-var i : integer;
+var i  : integer;
 begin
-    if i = 3 
+    if i = 3 then
       begin
          i := i * 3;
       end;
