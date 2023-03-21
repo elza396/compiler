@@ -18,7 +18,10 @@ namespace Compiler
             st_expressions = 9,
             after_expressions = 10,
             assigns = 11,
-            statement = 12;
+            statement = 12,
+            comparisonOperators = 13,
+            multiplyingOperators = 14,
+            addingOperators = 15;
 
         public StFoll()
         {
@@ -63,6 +66,8 @@ namespace Compiler
             sf[values].Add(LexicalAnalyzer.truesy);
             sf[values].Add(LexicalAnalyzer.falsesy);
             sf[values].Add(LexicalAnalyzer.leftpar);
+            sf[values].Add(LexicalAnalyzer.plus);
+            sf[values].Add(LexicalAnalyzer.minus);
 
             sf[types] = new HashSet<byte>();
             sf[types].Add(LexicalAnalyzer.integersy);
@@ -78,8 +83,8 @@ namespace Compiler
             sf[st_expressions].Add(LexicalAnalyzer.floatc);
             sf[st_expressions].Add(LexicalAnalyzer.falsesy);
             sf[st_expressions].Add(LexicalAnalyzer.truesy);
-            sf[st_expressions].Add(LexicalAnalyzer.stringsy);
-            sf[st_expressions].Add(LexicalAnalyzer.charsy);
+            sf[st_expressions].Add(LexicalAnalyzer.stringc);
+            sf[st_expressions].Add(LexicalAnalyzer.charc);
             sf[st_expressions].Add(LexicalAnalyzer.leftpar);
 
             sf[after_expressions] = new HashSet<byte>();
@@ -120,6 +125,26 @@ namespace Compiler
             sf[statement].Add(LexicalAnalyzer.whilesy);
             sf[statement].Add(LexicalAnalyzer.repeatsy);
             sf[statement].Add(LexicalAnalyzer.beginsy);
+
+            sf[comparisonOperators] = new HashSet<byte>();
+            sf[comparisonOperators].Add(LexicalAnalyzer.latergreater);
+            sf[comparisonOperators].Add(LexicalAnalyzer.greaterequal);
+            sf[comparisonOperators].Add(LexicalAnalyzer.laterequal);
+            sf[comparisonOperators].Add(LexicalAnalyzer.greater);
+            sf[comparisonOperators].Add(LexicalAnalyzer.later);
+            sf[comparisonOperators].Add(LexicalAnalyzer.equal);
+
+            sf[multiplyingOperators] = new HashSet<byte>();
+            sf[multiplyingOperators].Add(LexicalAnalyzer.star);
+            sf[multiplyingOperators].Add(LexicalAnalyzer.slash);
+            sf[multiplyingOperators].Add(LexicalAnalyzer.modsy);
+            sf[multiplyingOperators].Add(LexicalAnalyzer.divsy);
+            sf[multiplyingOperators].Add(LexicalAnalyzer.andsy);
+
+            sf[addingOperators] = new HashSet<byte>();
+            sf[addingOperators].Add(LexicalAnalyzer.plus);
+            sf[addingOperators].Add(LexicalAnalyzer.minus);
+            sf[addingOperators].Add(LexicalAnalyzer.orsy);
         }
 
     }

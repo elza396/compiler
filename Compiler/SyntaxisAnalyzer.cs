@@ -125,7 +125,7 @@
 //                 Accept(LexicalAnalyzer.ident);
 //                 Accept(LexicalAnalyzer.equal);
 //                 if (LexicalAnalyzer.symbol == LexicalAnalyzer.intc ||
-//                     LexicalAnalyzer.symbol == LexicalAnalyzer.floatc ||
+//                     LexicalAnalyzer.symbol == LexicalAnalyzer.realc ||
 //                     LexicalAnalyzer.symbol == LexicalAnalyzer.charc) // ? либо строка
 //                 {
 //                     LexicalAnalyzer.NextSym();

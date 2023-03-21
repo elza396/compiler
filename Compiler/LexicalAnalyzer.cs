@@ -51,11 +51,11 @@ namespace Compiler
             tosy = 103,
             endsy = 104,
             varsy = 105,
-            divsy = 106,
+            divsy = 106, // возвращает целую часть от деления двух целых чисел
             andsy = 107,
             notsy = 108,
             forsy = 109,
-            modsy = 110,
+            modsy = 110, // вычисляет остаток, полученный при выполнении целочисленного деления
             nilsy = 111,
             setsy = 112,
             beginsy = 113,
@@ -182,8 +182,17 @@ namespace Compiler
                     InputOutput.NextCh();
                     break;
                 case '/':
-                    symbol = new CKeywordToken(token, slash);
                     InputOutput.NextCh();
+                    if (InputOutput.Ch == '=')
+                    {
+                        symbol = new CKeywordToken(token, equalSlash);
+                        InputOutput.NextCh();
+                    }
+                    else
+                    {
+
+                        symbol = new CKeywordToken(token, slash);
+                    }
                     break;
                 case '<':
                    InputOutput.NextCh();
@@ -250,6 +259,11 @@ namespace Compiler
                         symbol = new CKeywordToken(token, rcomment);
                         InputOutput.NextCh();
                     }
+                    else if (InputOutput.Ch == '=')
+                    {
+                        symbol = new CKeywordToken(token, equalStar);
+                        InputOutput.NextCh();
+                    }
                     else
                     {
                         symbol = new CKeywordToken(token, star);
@@ -300,12 +314,30 @@ namespace Compiler
                     InputOutput.NextCh();
                     break;
                 case '+':
-                    symbol = new CKeywordToken(token, plus);
                     InputOutput.NextCh();
+                    if (InputOutput.Ch == '=')
+                    {
+                        symbol = new CKeywordToken(token, equalPlus);
+                        InputOutput.NextCh();
+                    }
+                    else
+                    {
+
+                        symbol = new CKeywordToken(token, plus);
+                    }
                     break;
                 case '-':
-                    symbol = new CKeywordToken(token, minus);
                     InputOutput.NextCh();
+                    if (InputOutput.Ch == '=')
+                    {
+                        symbol = new CKeywordToken(token, equalMinus);
+                        InputOutput.NextCh();
+                    }
+                    else
+                    {
+
+                        symbol = new CKeywordToken(token, minus);
+                    }
                     break;
                 default:
                     InputOutput.Error(6, token);
