@@ -37,18 +37,18 @@ namespace Compiler
         static string line;
         static byte lastInLine = 0;
         public static List<Err> err;
-        static StreamReader File { get;  set; } // ?
+        static StreamReader File { get;  set; }
+        public static StreamReader Filedict { get; set; }
+
         static uint errCount = 0;
+        public static Dictionary<int, string> Dicterrors = new Dictionary<int, string>(); // создание словаря с ошибками
 
         public static bool permission = true;
-        // public static SemanticAnalyzer.Scope localScope = new SemanticAnalyzer.Scope();
-        // public static SemanticAnalyzer.TypeRec charType, intType, realType, boolType, textType, nilType;
-        // public static SyntaxisAnalyzer.ListRec varList;
-        // public static SyntaxisAnalyzer.WithStack localWith = null;
 
         static public void Begin()
         {
             File = new StreamReader("Text.txt");
+            dictionaryErrors();
             positionNow = new TextPosition();
             ReadNextLine();
             Ch = line[0];
@@ -76,17 +76,17 @@ namespace Compiler
         {
             if (!permission)
             {
-                if (err.Count > 0)
-                    ListErrors();
                 End();
                 Environment.Exit(0);
             }
             lastInLine = (byte)line.Length;
             if (positionNow.charNumber == lastInLine - 1)
             {
-                if (err.Count > 0)
-                    ListErrors();
                 ListThisLine();
+                if (err.Count > 0)
+                {
+                    ListErrors();
+                }
                 ReadNextLine();
                 positionNow.lineNumber += 1;
                 positionNow.charNumber = 0;
@@ -121,7 +121,7 @@ namespace Compiler
 
         static void ListErrors()
         {
-            int pos = 8 - $"{positionNow.lineNumber} ".Length;
+            int pos = 8 - $"{positionNow.charNumber} ".Length;
             string s;
             foreach (Err item in err)
             {
@@ -129,8 +129,8 @@ namespace Compiler
                 s = "**";
                 if (errCount < 10) s += "0";
                 s += $"{errCount}**";
-                while (s.Length - 1 < pos + item.errorPosition.charNumber) s += " ";
-                s += $"^ ошибка код {item.errorCode};";
+                while (s.Length < pos + item.errorPosition.charNumber) s += " ";
+                s += $"^ ошибка код {item.errorCode} ({Dicterrors[item.errorCode]} ) на {item.errorPosition.lineNumber + 1} строке;";
                 Console.WriteLine(s);
             }
         }
@@ -142,6 +142,22 @@ namespace Compiler
             {
                 e = new Err(position, errorCode);
                 err.Add(e);
+            }
+        }
+
+        static public void dictionaryErrors()
+        {
+            Filedict = new StreamReader("ErrorCodes.txt");
+            while (!Filedict.EndOfStream)
+            {
+                var lines = Filedict.ReadLine();
+                string[] walye = lines.Split(':');
+                if (walye.Length == 2)
+                {
+                    Dicterrors.Add(Int32.Parse(walye[0]), walye[1]);
+                }
+
+
             }
         }
 

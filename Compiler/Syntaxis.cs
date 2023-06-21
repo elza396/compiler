@@ -52,7 +52,7 @@ namespace Compiler
             }
         }
 
-        static void Block(HashSet<byte> followers)
+        static void Block(HashSet<byte> followers) // анализ конструкции блок
         {
             HashSet<byte> ptra;
             StFoll obj = new StFoll();
@@ -153,11 +153,6 @@ namespace Compiler
         {
             HashSet<byte> ptra; // храним внешние символы
             StFoll obj = new StFoll();
-            if (!Belong(cur_token.Code, obj.sf[StFoll.st_varpart]))
-            {
-                InputOutput.Error(18); // ошибка в разделе описаний
-                SkipTo2(obj.sf[StFoll.st_varpart], followers);
-            }
             if (cur_token.Code == LexicalAnalyzer.varsy)
             {
                 cur_token = LexicalAnalyzer.NextSym();
@@ -240,7 +235,7 @@ namespace Compiler
             VariableType result = VariableType.vartUndef;
             if (!Belong(cur_token.Code, obj.sf[StFoll.types]))
             {
-                InputOutput.Error(10);
+                InputOutput.Error(10, cur_token.Position);
                 SkipTo2(obj.sf[StFoll.types], followers);
             }
             else
@@ -298,6 +293,8 @@ namespace Compiler
         //     }
         // }
 
+        //     <раздел операторов>::= begin <оператор>{;<оператор>} end
+        //     <оператор>::= <непомеченный оператор>
         static void StatPart(HashSet<byte> followers) // анализ конструкции <оператор>
         {
             // if (cur_token.Code == LexicalAnalyzer.intc) // семантический анализ метки TODO доделать!
@@ -309,6 +306,7 @@ namespace Compiler
             {
                 case LexicalAnalyzer.ident: // анализ оператора присваивания
                     Assignment(followers);
+                    StatPart(followers);
                     // else
                     //     // анализ вызова процедуры
                     //     CallProc(followers);
@@ -356,9 +354,11 @@ namespace Compiler
                 followers.Add(LexicalAnalyzer.thensy);
                 bool is_logic = VariableType.vartBoolean == Expression(followers);
                 if (!is_logic)
+                {
                     // ошибка 135: тип операнда должен быть BOOLEAN
                     InputOutput.Error(135, expr_start);
-
+                    SkipTo(followers);
+                }
                 Accept(LexicalAnalyzer.thensy);
                 followers.Add(LexicalAnalyzer.elsesy);
                 StatPart(followers);
@@ -376,6 +376,7 @@ namespace Compiler
         // <оператор присваивания>::=<переменная>:=<выражение>| <имя функции>:=<выражение>
         static void Assignment(HashSet<byte> followers) // присваивание
         {
+            HashSet<byte> ptra;
             StFoll obj = new StFoll();
             if (cur_token.Code == LexicalAnalyzer.ident)
             {
@@ -386,12 +387,13 @@ namespace Compiler
                     cur_token = LexicalAnalyzer.NextSym();
                     TextPosition assignment_position = cur_token.Position;
                     VariableType expression_type = Expression(followers);
+                    SetDisjunct(obj.sf[StFoll.after_expressions], followers, out ptra);
                     if (!CanAssign(ident_type, expression_type) && ident_type != VariableType.vartUndef &&
                         expression_type != VariableType.vartUndef)
                     {
                         // ошибка 145: конфликт типов
                         InputOutput.Error(145, assignment_position);
-                        SkipTo(followers);
+                        SkipTo(ptra);
                     }
                     Accept(LexicalAnalyzer.semicolon);
                 }
@@ -464,7 +466,7 @@ namespace Compiler
 
             if (obj.sf[StFoll.values].Contains(cur_token.Code))
             {
-                SetDisjunct(obj.sf[StFoll.expressions], followers, out ptra);
+                // SetDisjunct(obj.sf[StFoll.expressions], followers, out ptra);
                 result = SimpleExpression(ptra);
 
                 if (obj.sf[StFoll.comparisonOperators].Contains(cur_token.Code))
@@ -523,7 +525,6 @@ namespace Compiler
                 while (Belong(cur_token.Code, obj.sf[StFoll.addingOperators]))
                 {
                     SetDisjunct(obj.sf[StFoll.values], followers, out ptra);
-
                     TextPosition operator_pos = cur_token.Position;
                     byte? addingOperator = Operator(obj.sf[StFoll.addingOperators], ptra);
                     SetDisjunct(obj.sf[StFoll.multiplyingOperators], followers, out ptra);
@@ -630,12 +631,13 @@ namespace Compiler
         {
             StFoll obj = new StFoll();
             HashSet<byte> ptra;
+            SetDisjunct(obj.sf[StFoll.after_var], followers, out ptra);
 
             if (!Belong(cur_token.Code, obj.sf[StFoll.st_expressions]))
             {
                 // ошибка 144: недопустимый тип выражения
                 InputOutput.Error(144, cur_token.Position);
-                SkipTo(followers);
+                SkipTo(ptra);
             }
             VariableType result = VariableType.vartUndef;
             if (Belong(cur_token.Code, obj.sf[StFoll.st_expressions]))
@@ -654,127 +656,81 @@ namespace Compiler
             return result;
         }
 
-    // <множитель>::=<переменная>|
-    //               <константа без знака>|
-    //               (<выражение>)|
-    ////               <обозначение функции>|
-    ////               <множество>|
-    //               not <множитель>
-    // <константа без знака>::=<число без знака>|
-    //                         <строка>|
-    //                         <имя константы>|
-    ////                       nil
-    static VariableType Factor(HashSet<byte> followers)
-    {
-        StFoll obj = new StFoll();
-        // HashSet<byte> ptra;
-        if (!Belong(cur_token.Code, obj.sf[StFoll.st_expressions]))
+        // <множитель>::=<переменная>|
+        //               <константа без знака>|
+        //               (<выражение>)|
+        ////               <обозначение функции>|
+        ////               <множество>|
+        //               not <множитель>
+        // <константа без знака>::=<число без знака>|
+        //                         <строка>|
+        //                         <имя константы>|
+        ////                       nil
+        static VariableType Factor(HashSet<byte> followers)
         {
-            // оишбка 144: недопустимый тип выражения
-            InputOutput.Error(144, cur_token.Position);
-            SkipTo(followers);
-        }
-        VariableType result = VariableType.vartUndef;
-        if (Belong(cur_token.Code, obj.sf[StFoll.st_expressions]))
-        {
-            switch (cur_token.Code)
+            StFoll obj = new StFoll();
+            // HashSet<byte> ptra;
+            if (!Belong(cur_token.Code, obj.sf[StFoll.st_expressions]))
             {
-                case LexicalAnalyzer.ident:
-                    result = GetIdentType(followers);
-                    Accept(LexicalAnalyzer.ident);
-                    break;
-                case LexicalAnalyzer.truesy:
-                    result = VariableType.vartBoolean;
-                    Accept(LexicalAnalyzer.truesy);
-                    break;
-                case LexicalAnalyzer.falsesy:
-                    result = VariableType.vartBoolean;
-                    Accept(LexicalAnalyzer.falsesy);
-                    break;
-                case LexicalAnalyzer.intc:
-                    result = VariableType.vartInteger;
-                    Accept(LexicalAnalyzer.intc);
-                    break;
-                case LexicalAnalyzer.floatc:
-                    result = VariableType.vartFloat;
-                    Accept(LexicalAnalyzer.floatc);
-                    break;
-                case LexicalAnalyzer.stringc:
-                    result = VariableType.vartString;
-                    Accept(LexicalAnalyzer.stringc);
-                    break;
-                case LexicalAnalyzer.leftpar:
-                    Accept(LexicalAnalyzer.leftpar);
-                    followers.Add(LexicalAnalyzer.rightpar);
-                    result = Expression(followers);
-                    Accept(LexicalAnalyzer.rightpar);
-                    break;
-                case LexicalAnalyzer.notsy:
-                    Accept(LexicalAnalyzer.notsy);
-                    result = Factor(followers);
-                    if (result == VariableType.vartBoolean)
-                    {
-                        // 210: операнды AND, NOT, OR должны быть булевыми
-                        InputOutput.Error(210, cur_token.Position);
-                    }
-                    break;
+                // оишбка 144: недопустимый тип выражения
+                InputOutput.Error(144, cur_token.Position);
+                SkipTo(followers);
             }
+            VariableType result = VariableType.vartUndef;
+            if (Belong(cur_token.Code, obj.sf[StFoll.st_expressions]))
+            {
+                switch (cur_token.Code)
+                {
+                    case LexicalAnalyzer.ident:
+                        result = GetIdentType(followers);
+                        Accept(LexicalAnalyzer.ident);
+                        break;
+                    case LexicalAnalyzer.truesy:
+                        result = VariableType.vartBoolean;
+                        Accept(LexicalAnalyzer.truesy);
+                        break;
+                    case LexicalAnalyzer.falsesy:
+                        result = VariableType.vartBoolean;
+                        Accept(LexicalAnalyzer.falsesy);
+                        break;
+                    case LexicalAnalyzer.intc:
+                        result = VariableType.vartInteger;
+                        Accept(LexicalAnalyzer.intc);
+                        break;
+                    case LexicalAnalyzer.floatc:
+                        result = VariableType.vartFloat;
+                        Accept(LexicalAnalyzer.floatc);
+                        break;
+                    case LexicalAnalyzer.stringc:
+                        result = VariableType.vartString;
+                        Accept(LexicalAnalyzer.stringc);
+                        break;
+                    case LexicalAnalyzer.leftpar:
+                        Accept(LexicalAnalyzer.leftpar);
+                        followers.Add(LexicalAnalyzer.rightpar);
+                        result = Expression(followers);
+                        Accept(LexicalAnalyzer.rightpar);
+                        break;
+                    case LexicalAnalyzer.notsy:
+                        Accept(LexicalAnalyzer.notsy);
+                        result = Factor(followers);
+                        if (result == VariableType.vartBoolean)
+                        {
+                            // 210: операнды AND, NOT, OR должны быть булевыми
+                            InputOutput.Error(210, cur_token.Position);
+                        }
+                        break;
+                }
+            }
+            return result;
         }
-        return result;
-    }
 
         public static void Programme() /* создание элемента стека для фиктивной области действия */
         {
             cur_token = LexicalAnalyzer.NextSym();
-            // SemanticAnalyzer.OpenScope();
-            /* построение ТИ и ТТ фиктивной области действия */
-            // InputOutput.boolType = SemanticAnalyzer.NewType(SemanticAnalyzer.enums);
-            // SearchInTable("false");
-            /* построение вершины в ТИ для константы false */
-            // entry = newident(hashresult, addrname, CONSTS);
-            // entry->idtype = booltype;
-            /* создание элемента списка констант в дескрипторе перечислимого типа */
-            // (booltype->casetype).firstconst =
-            // newconst(addrname);
-            /* далее - аналогичные действия для константы true */
-            // search_in_table("true");
-            // entry = newident(hashresult, addrname, CONSTS);
-            // entry->idtype = booltype;
-            // (booltype->casetype).firstconst->next =
-            // newconst(addrname);
-            /* продолжаем строить дескрипторы стандартных типов*/
-            // realtype = newtype(SCALARS);
-            // chartype = newtype(SCALARS);
-            // inttype = newtype(SCALARS);
-            // texttype = newtype(FILES);
-            // (texttype->casetype).basetype = chartype;
-            /* заносим в таблицу имен и ТИ остальные стандартные идентификаторы */
-            // search_in_table("integer");
-            // entry = newident(hashresult, addrname, TYPES);
-            // entry->idtype = inttype;
-            // search_in_table("maxint");
-            // entry = newident(hashresult, addrname, CONSTS);
-            // (entry->casenode).constvalue.intval = MAXCONST;
-            /* значение константы MAXCONST зависит от конкретной вычислительной машины */
-            // entry->idtype = inttype;
-            // search_in_table("boolean");
-// ...
-// search_in_table("real");
-            // entry = newident(hashresult, addrname, TYPES);
-            // entry->idtype = realtype;
-            /* создание элемента стека для области действия основной программы */
-            // open_scope;
             /* синтаксический анализ */
             Accept(LexicalAnalyzer.programsy);
             Accept(LexicalAnalyzer.ident);
-            // Accept(LexicalAnalyzer.leftpar); // ?
-            // Accept(LexicalAnalyzer.ident);
-            // while (LexicalAnalyzer.symbol == LexicalAnalyzer.comma)
-            // {
-            //     cur_token = LexicalAnalyzer.NextSym();
-            //     Accept(LexicalAnalyzer.ident);
-            // }
-            // Accept(LexicalAnalyzer.rightpar);
             Accept(LexicalAnalyzer.semicolon);
             followers.Add(LexicalAnalyzer.point);
             Block(followers);
